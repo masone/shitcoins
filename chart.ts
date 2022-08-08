@@ -9,7 +9,7 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1);
 });
 
-var instream = fs.createReadStream('./tests/out.log');
+var instream = fs.createReadStream('./out.log');
 
 var rl = readline.createInterface({
     input: instream,

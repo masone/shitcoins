@@ -116,9 +116,9 @@ export async function monitor() {
     cashtags.forEach((tag) => {
       if (trackedCashtags.has(tag)) {
         counts[tag] = ++counts[tag];
+        logger.info({ counts }, "counts");
       }
       logger.debug({ tag, count: counts[tag] }, "mention");
-      logger.info({ counts }, "counts");
     });
   }
 }

@@ -37,7 +37,7 @@ rl.on('line', function(line: string) {
   const time = json.time
   const start = startOfHour(time)
 
-  if(json.msg ==="count"){
+  if(json.msg ==="counts"){
     Object.keys(json.count).forEach(key => {
       const value = parseInt(json.count[key])
       timeline.counts[key] ||= {}

@@ -8,20 +8,6 @@ interface Counts {
 }
 
 const client = new Client(process.env.TWITTER_BEARER as string);
-// const users = [
-//   "from:Bitcoin8News",
-//   "from:VolumeAnalyzer",
-//   "from:CrypnalApp",
-//   "from:btc_price_",
-//   "from:RisingSun_Crypo",
-//   "from:BTCPriceUpdate",
-//   "from:BTCtoCAD",
-//   "from:Lord_Defi22",
-//   "from:MinuShib",
-//   "from:Ethereum8News",
-//   "from:WhaleTrades",
-//   "from:bot_ethereum_",
-// ];
 const counts: Counts = {};
 let trackedCashtags: Set<string> = new Set();
 
@@ -51,7 +37,6 @@ export async function followUsers(): Promise<void> {
     ],
   });
   logger.info({ users: usernames }, "users");
-  // const rules = await getRules();
 }
 
 export async function followCashtags(tags: string[]): Promise<void> {
@@ -70,10 +55,10 @@ export async function followCashtags(tags: string[]): Promise<void> {
     ],
   });
 
-  newCashtags.forEach((tag) => {
+  trackedCashtags = newCashtags;
+  tags.forEach((tag) => {
     counts[tag] = 0;
   });
-  trackedCashtags = newCashtags;
 
   // const rules = await getRules();
   logger.info({ tags, trackedCashtags }, "cashtags");

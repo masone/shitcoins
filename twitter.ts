@@ -70,10 +70,10 @@ export async function followCashtags(tags: string[]): Promise<void> {
     ],
   });
 
-  trackedCashtags = newCashtags;
-  trackedCashtags.forEach((tag) => {
+  newCashtags.forEach((tag) => {
     counts[tag] = 0;
   });
+  trackedCashtags = newCashtags;
 
   // const rules = await getRules();
   logger.info({ tags, trackedCashtags }, "cashtags");

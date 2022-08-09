@@ -1,7 +1,10 @@
 import { Client } from "twitter-api-sdk";
 import pino from "pino";
+import { exec } from "child_process";
+import { existsSync } from "fs";
 
-const logger = pino({}, pino.destination("out.log"));
+const logFile = "./out.log";
+const logger = pino({}, pino.destination(logFile));
 
 interface Counts {
   [key: string]: number;
@@ -11,11 +14,39 @@ const client = new Client(process.env.TWITTER_BEARER as string);
 const counts: Counts = {};
 let trackedCashtags: Set<string> = new Set();
 
+export function loadFromLog() {
+  if (!existsSync(logFile)) {
+    return;
+  }
+
+  exec(`tail -n 1 ${logFile}`, (error, stdout, stderr) => {
+    if (error) {
+      throw error;
+    }
+    if (stderr) {
+      console.error(stderr);
+    }
+
+    const json = JSON.parse(stdout);
+    if (json.msg !== "counts") {
+      throw new Error("can't resume. last line is not counts");
+    }
+    trackedCashtags = new Set(Object.keys(json.counts));
+    console.log(Object.keys(json.counts));
+    for (const token in json.counts) {
+      counts[token] = json.counts[token];
+    }
+
+    logger.info({ counts, tokens: [...trackedCashtags] }, "load");
+  });
+}
+
 export async function getRules() {
   return await client.tweets.getRules();
 }
 
 export async function clear(): Promise<void> {
+  loadFromLog();
   const rules = await getRules();
   if (rules.data) {
     await client.tweets.addOrDeleteRules({
@@ -25,7 +56,9 @@ export async function clear(): Promise<void> {
 }
 
 export async function followUsers(): Promise<void> {
-  const users = await client.users.listGetMembers(process.env.TWITTER_LIST_ID as string);
+  const users = await client.users.listGetMembers(
+    process.env.TWITTER_LIST_ID as string
+  );
   const usernames = users.data?.map((user) => user.username) || [];
 
   await client.tweets.addOrDeleteRules({

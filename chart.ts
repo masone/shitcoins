@@ -16,21 +16,22 @@ var rl = readline.createInterface({
     terminal: false
 });
 
-interface BucketCount {
-  [key: string]: number
+interface TimeBucket {
+  [key: string]: TokenCount
 }
 
 interface TokenCount {
-  [key: string]: BucketCount
+  [key: string]: number
 }
 
 interface Timeline {
   startTime?: Date
   endTime?: Date
-  counts: TokenCount
+  tokens: Set<string>
+  counts: TimeBucket
 }
 
-const timeline: Timeline = { counts: {}}
+const timeline: Timeline = { counts: {}, tokens: new Set() };
 
 rl.on('line', function(line: string) {
   const json = JSON.parse(line)
@@ -38,11 +39,12 @@ rl.on('line', function(line: string) {
   const start = startOfHour(time)
 
   if(json.msg ==="counts"){
-    Object.keys(json.counts).forEach(key => {
-      const value = parseInt(json.counts[key])
-      timeline.counts[key] ||= {}
-      timeline.counts[key][start.getTime()] = value
-    })
+    for(const token in json.counts) {
+      const value = parseInt(json.counts[token])
+      timeline.tokens.add(token)
+      timeline.counts[start.getTime()] ||= {}
+      timeline.counts[start.getTime()][token] = value
+    }
   }
 
   if(!timeline.startTime) {
@@ -52,14 +54,19 @@ rl.on('line', function(line: string) {
 });
 
 rl.on('close', function() {
-  const {startTime, endTime} = timeline
+  const {startTime, endTime, tokens } = timeline
 
-  Object.keys(timeline.counts).forEach(key => {
-    const counts = Object.values(timeline.counts[key])
-    console.log(`===${key}=== from ${startTime} to ${endTime}`)
-    console.log(asciichart.plot(counts))
+  tokens.forEach(token => {
+    const counts = Object.keys(timeline.counts).map(bucketStartTime => {
+      return timeline.counts[bucketStartTime][token] || 0
+    })
+    const perHour = counts[counts.length-1] / Object.keys(timeline.counts).length
+
+    console.log(`\n=== ${token} ===`)
+    console.log(`${perHour} per hour\n`)
+    console.log(asciichart.plot(counts, { height: 10 }))
   })
 
-  // todo: fill zeroes
+  console.log(`${startTime} to ${endTime}`)
 });
 

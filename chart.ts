@@ -39,7 +39,7 @@ rl.on('line', function(line: string) {
 
   if(json.msg ==="counts"){
     Object.keys(json.counts).forEach(key => {
-      const value = parseInt(json.count[key])
+      const value = parseInt(json.counts[key])
       timeline.counts[key] ||= {}
       timeline.counts[key][start.getTime()] = value
     })

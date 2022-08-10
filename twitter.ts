@@ -10,9 +10,19 @@ interface Counts {
   [key: string]: number;
 }
 
-const client = new Client(process.env.TWITTER_BEARER as string);
+type CashTagsRuleId = string | undefined;
+type SetOfStrings = Set<string>;
+
+interface FollowCashTags {
+  trackedCashtags: SetOfStrings;
+  cashTagsRuleId: CashTagsRuleId;
+  counts: Counts;
+}
+
+export const client = new Client(process.env.TWITTER_BEARER as string);
 const counts: Counts = {};
-let trackedCashtags: Set<string> = new Set();
+let trackedCashtags: SetOfStrings = new Set();
+let cashTagsRuleId: CashTagsRuleId;
 
 export function loadFromLog() {
   if (!existsSync(logFile)) {
@@ -31,8 +41,9 @@ export function loadFromLog() {
     if (json.msg !== "counts") {
       throw new Error("can't resume. last line is not counts");
     }
+
     trackedCashtags = new Set(Object.keys(json.counts));
-    console.log(Object.keys(json.counts));
+    followCashtags(Array.from(trackedCashtags));
     for (const token in json.counts) {
       counts[token] = json.counts[token];
     }
@@ -72,29 +83,42 @@ export async function followUsers(): Promise<void> {
   logger.info({ users: usernames }, "users");
 }
 
-export async function followCashtags(tags: string[]): Promise<void> {
+export async function followCashtags(tags: string[]): Promise<FollowCashTags> {
   const newCashtags = new Set([...trackedCashtags, ...tags]);
 
   if (newCashtags.size === trackedCashtags.size) {
-    return;
+    return { trackedCashtags, cashTagsRuleId, counts };
   }
 
-  await client.tweets.addOrDeleteRules({
+  const query = Array.from(newCashtags).join(" OR ");
+  const rules = await client.tweets.addOrDeleteRules({
     add: [
       {
-        value: Array.from(newCashtags).join(" OR "),
+        value: query,
         tag: "cashtags",
       },
     ],
   });
+
+  if (cashTagsRuleId) {
+    await client.tweets.addOrDeleteRules({
+      delete: { ids: [cashTagsRuleId] },
+    });
+  }
+
+  if (rules.data) {
+    cashTagsRuleId = rules.data[0].id;
+  }
 
   trackedCashtags = newCashtags;
   tags.forEach((tag) => {
     counts[tag] = 0;
   });
 
-  // const rules = await getRules();
-  logger.info({ tags, trackedCashtags }, "cashtags");
+  const currentRules = await getRules();
+  logger.info({ tags, query }, "cashtags");
+
+  return { trackedCashtags, cashTagsRuleId, counts };
 }
 
 export async function monitor() {

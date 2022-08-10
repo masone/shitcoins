@@ -24,6 +24,14 @@ const counts: Counts = {};
 let trackedCashtags: SetOfStrings = new Set();
 let cashTagsRuleId: CashTagsRuleId;
 
+export function reset() {
+  for (const count in counts) {
+    delete counts[count];
+  }
+  trackedCashtags = new Set();
+  cashTagsRuleId = undefined;
+}
+
 export function loadFromLog() {
   if (!existsSync(logFile)) {
     return;
@@ -39,7 +47,8 @@ export function loadFromLog() {
 
     const json = JSON.parse(stdout);
     if (json.msg !== "counts") {
-      throw new Error("can't resume. last line is not counts");
+      logger.info("load failed");
+      return;
     }
 
     trackedCashtags = new Set(Object.keys(json.counts));
@@ -90,15 +99,32 @@ export async function followCashtags(tags: string[]): Promise<FollowCashTags> {
     return { trackedCashtags, cashTagsRuleId, counts };
   }
 
-  const query = Array.from(newCashtags).join(" OR ");
+  const limit = 70; // 500/7 avg chars per cashtag = ~70
+  const chunks = Array.from(newCashtags)
+    .map((_, i) => {
+      return i % limit === 0
+        ? Array.from(newCashtags).slice(i, i + limit)
+        : null;
+    })
+    .filter((e) => {
+      return e;
+    });
+
   const rules = await client.tweets.addOrDeleteRules({
-    add: [
-      {
+    add: chunks.map((chunk) => {
+      const query = (chunk || []).join(" OR ");
+      logger.info({ tags, query }, "cashtags");
+
+      return {
         value: query,
         tag: "cashtags",
-      },
-    ],
+      };
+    }),
   });
+
+  if (rules.data) {
+    cashTagsRuleId = rules.data[0].id;
+  }
 
   if (cashTagsRuleId) {
     await client.tweets.addOrDeleteRules({
@@ -106,17 +132,12 @@ export async function followCashtags(tags: string[]): Promise<FollowCashTags> {
     });
   }
 
-  if (rules.data) {
-    cashTagsRuleId = rules.data[0].id;
-  }
-
   trackedCashtags = newCashtags;
   tags.forEach((tag) => {
     counts[tag] = 0;
   });
 
-  const currentRules = await getRules();
-  logger.info({ tags, query }, "cashtags");
+  // const currentRules = await getRules();
 
   return { trackedCashtags, cashTagsRuleId, counts };
 }

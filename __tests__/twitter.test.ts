@@ -1,6 +1,10 @@
-import { followCashtags, client } from "../twitter";
+import { followCashtags, client, reset } from "../twitter";
 
 describe("twitter", () => {
+  beforeEach(() => {
+    reset();
+  });
+
   describe("followCashtags", () => {
     it("follows cashtags", async () => {
       followCashtags(["$btc"]);
@@ -14,9 +18,24 @@ describe("twitter", () => {
       expect(Array.from(trackedCashtags)).toEqual(["$btc"]);
     });
 
+    it("does not allow duplicates", async () => {
+      await followCashtags(["$btc", "$btc"]);
+      const { trackedCashtags } = await followCashtags(["$btc"]);
+      expect(Array.from(trackedCashtags)).toEqual(["$btc"]);
+    });
+
     it("keeps track of cashTagsRuleId", async () => {
       const { cashTagsRuleId } = await followCashtags(["$btc"]);
       expect(cashTagsRuleId).toEqual("999");
+    });
+
+    it("creates multiple rules when limit is reached", async () => {
+      await followCashtags(Array.from({ length: 80 }, (_, i) => `$TKN${i}`));
+      expect(client.tweets.addOrDeleteRules).toBeCalledWith(
+        expect.objectContaining({
+          add: [expect.anything(), expect.anything()],
+        })
+      );
     });
 
     it("deletes existing rule", async () => {

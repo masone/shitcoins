@@ -93,7 +93,10 @@ export async function followUsers(): Promise<void> {
 }
 
 export async function followCashtags(tags: string[]): Promise<FollowCashTags> {
-  const newCashtags = new Set([...trackedCashtags, ...tags]);
+  const newCashtags = new Set([
+    ...trackedCashtags,
+    ...tags.filter((tag) => !process.env.IGNORE_CASHTAGS?.split(",").includes(tag)),
+  ]);
 
   if (newCashtags.size === trackedCashtags.size) {
     return { trackedCashtags, cashTagsRuleId, counts };

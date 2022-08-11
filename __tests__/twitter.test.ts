@@ -2,6 +2,7 @@ import { followCashtags, client, reset } from "../twitter";
 
 describe("twitter", () => {
   beforeEach(() => {
+    process.env.IGNORE_CASHTAGS = "";
     reset();
   });
 
@@ -27,6 +28,15 @@ describe("twitter", () => {
     it("keeps track of cashTagsRuleId", async () => {
       const { cashTagsRuleId } = await followCashtags(["$btc"]);
       expect(cashTagsRuleId).toEqual("999");
+    });
+
+    it("ignores configured cashtags", async () => {
+      process.env.IGNORE_CASHTAGS = "$btc,$eth";
+      const { trackedCashtags } = await followCashtags(["$btc", "$foo", "$bar"]);
+      expect(client.tweets.addOrDeleteRules).toBeCalledWith({
+        add: [{ tag: "cashtags", value: "$foo OR $bar" }],
+      });
+      expect(Array.from(trackedCashtags)).toEqual(["$foo", "$bar"]);
     });
 
     it("creates multiple rules when limit is reached", async () => {

@@ -7,7 +7,7 @@
   "scripts": {
     "start": "ts-node --files index.ts",
     "bg:start": "ts-node --files index.ts > stdout.log &",
-    "bg:stop": "pkill \"npm run bg:start\"",
+    "bg:stop": "pkill shitcoinsnode",
     "chart": "ts-node --files chart.ts",
     "typecheck": "tsc --noEmit",
     "test": "jest",

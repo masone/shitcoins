@@ -7,6 +7,8 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1);
 });
 
+process.title = "shitcoinsnode";
+
 await clear();
 await followUsers();
 monitor();

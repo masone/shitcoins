@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "ts-node --files index.ts",
-    "bg:start": "npm run start > stdout.log &",
+    "bg:start": "ts-node --files index.ts > stdout.log &",
     "bg:stop": "pkill \"npm run bg:start\"",
     "chart": "ts-node --files chart.ts",
     "typecheck": "tsc --noEmit",

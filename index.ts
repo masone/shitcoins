@@ -7,10 +7,23 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1);
 });
 
+process.on("exit", (code) => {
+  if (process.env.NODE_ENV === "productino") {
+    fetch(
+      "http://maker.ifttt.com/trigger/notify/json/with/key/SiqRRoN-OnAolsmwmhQrG",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ exit: "Shitcoins exited", code }),
+      }
+    );
+  }
+});
+
 process.title = "shitcoinsnode";
 
 await clear();
 await followUsers();
 monitor();
-
-// curl -X POST -H "Content-Type: application/json" -d '{"this":[{"is":{"some":["test","data"]}}]}' http://maker.ifttt.com/trigger/{event}/json/with/key/{webhooks_key}

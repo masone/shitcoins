@@ -32,7 +32,11 @@ describe("twitter", () => {
 
     it("ignores configured cashtags", async () => {
       process.env.IGNORE_CASHTAGS = "$btc,$eth";
-      const { trackedCashtags } = await followCashtags(["$btc", "$foo", "$bar"]);
+      const { trackedCashtags } = await followCashtags([
+        "$btc",
+        "$foo",
+        "$bar",
+      ]);
       expect(client.tweets.addOrDeleteRules).toBeCalledWith({
         add: [{ tag: "cashtags", value: "$foo OR $bar" }],
       });

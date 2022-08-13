@@ -2,6 +2,7 @@ import { Client } from "twitter-api-sdk";
 import pino from "pino";
 import { exec } from "child_process";
 import { existsSync } from "fs";
+import { notify } from "./email.js";
 
 const logFile = "./out.log";
 const logger = pino({}, pino.destination(logFile));
@@ -92,6 +93,22 @@ export async function followUsers(): Promise<void> {
   logger.info({ users: usernames }, "users");
 }
 
+export async function watchCashtags(): Promise<void> {
+  const tags = process.env.WATCH_CASHTAGS?.split(",") || [];
+  const query = tags.map((tag) => `(${tag} chart)`).join(" OR ");
+
+  await client.tweets.addOrDeleteRules({
+    add: [
+      {
+        value: query,
+        tag: "chart",
+      },
+    ],
+  });
+
+  logger.info({ tags, query }, "watch");
+}
+
 export async function followCashtags(tags: string[]): Promise<FollowCashTags> {
   const newCashtags = new Set([
     ...trackedCashtags,
@@ -176,11 +193,17 @@ export async function monitor() {
       ] || [];
 
     // console.dir(tweet, { depth: null });
+    logger.debug({ tweet }, "tweet");
+
     if (matchingRules.includes("users")) {
       await followCashtags(cashtags);
     }
 
-    logger.debug({ tweet }, "tweet");
+    if (matchingRules.includes("chart")) {
+      const url = `https://twitter.com/xxx/status/${tweet.data?.id}`;
+      notify({ text: tweet.data?.text, url });
+    }
+
     cashtags.forEach((tag) => {
       if (trackedCashtags.has(tag)) {
         counts[tag] = ++counts[tag];

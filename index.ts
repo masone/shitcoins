@@ -1,6 +1,7 @@
 import "dotenv/config";
 
-import { clear, followUsers, monitor } from "./twitter.js";
+import { clear, followUsers, watchCashtags, monitor } from "./twitter.js";
+import { notify } from "./email.js";
 
 process.on("unhandledRejection", (reason, promise) => {
   console.log("Unhandled rejection at ", promise, reason);
@@ -8,22 +9,12 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 process.on("exit", (code) => {
-  if (process.env.NODE_ENV === "productino") {
-    fetch(
-      "http://maker.ifttt.com/trigger/notify/json/with/key/SiqRRoN-OnAolsmwmhQrG",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ exit: "Shitcoins exited", code }),
-      }
-    );
-  }
+  notify({ exit: "Shitcoins exited", code });
 });
 
 process.title = "shitcoinsnode";
 
 await clear();
 await followUsers();
+await watchCashtags();
 monitor();

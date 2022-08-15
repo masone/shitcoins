@@ -56,14 +56,29 @@ rl.on("close", function () {
   const { startTime, endTime, tokens } = timeline;
 
   tokens.forEach((token) => {
+    if (process.env.IGNORE_CASHTAGS?.includes(token)) {
+      return;
+    }
+
     const counts = Object.keys(timeline.counts).map((bucketStartTime) => {
       return timeline.counts[bucketStartTime][token] || 0;
     });
-    const perHour =
-      counts[counts.length - 1] / Object.keys(timeline.counts).length;
 
+    const filledHours = Object.entries(timeline.counts).filter(([time]) => {
+      const count = timeline.counts[time][token];
+      return count > 0;
+    }).length;
+
+    const lastCount = counts[counts.length - 1];
+    const perHour = lastCount / filledHours;
+
+    if (lastCount < 5) {
+      return;
+    }
     console.log(`\n=== ${token} ===`);
+    console.log(`${lastCount} total`);
     console.log(`${perHour} per hour\n`);
+
     console.log(asciichart.plot(counts, { height: 10 }));
   });
 

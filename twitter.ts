@@ -95,7 +95,7 @@ export async function followUsers(): Promise<void> {
 
 export async function watchCashtags(): Promise<void> {
   const tags = process.env.WATCH_CASHTAGS?.split(",") || [];
-  const query = tags.map((tag) => `(${tag} chart)`).join(" OR ");
+  const query = tags.map((tag) => `(${tag} chart good) OR (${tag} accumulation)`).join(" OR ");
 
   await client.tweets.addOrDeleteRules({
     add: [
@@ -113,7 +113,7 @@ export async function followCashtags(tags: string[]): Promise<FollowCashTags> {
   const newCashtags = new Set([
     ...trackedCashtags,
     ...tags.filter(
-      (tag) => !process.env.IGNORE_CASHTAGS?.includes(tag)
+      (tag) => !process.env.IGNORE_CASHTAGS?.split(",").includes(tag)
     ),
   ]);
 

@@ -200,16 +200,21 @@ export async function monitor() {
     }
 
     if (matchingRules.includes("chart")) {
-      const url = `https://twitter.com/xxx/status/${tweet.data?.id}`;
-      notify({ text: tweet.data?.text, url });
+      if(!tweet.data?.in_reply_to_user_id) {
+        console.dir(tweet, { depth: null });
+        const url = `https://twitter.com/xxx/status/${tweet.data?.id}`;
+        notify({ text: tweet.data?.text, url });
+      }
     }
 
-    cashtags.forEach((tag) => {
-      if (trackedCashtags.has(tag)) {
-        counts[tag] = ++counts[tag];
-        logger.info({ counts }, "counts");
-      }
-      logger.debug({ tag, count: counts[tag] }, "mention");
-    });
+    if(cashtags.length < 5) { // ignore tweets with too many cashtags
+      cashtags.forEach((tag) => {
+        if (trackedCashtags.has(tag)) {
+          counts[tag] = ++counts[tag];
+          logger.info({ counts }, "counts");
+        }
+        logger.debug({ tag, count: counts[tag] }, "mention");
+      });
+    }
   }
 }

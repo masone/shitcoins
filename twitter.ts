@@ -113,7 +113,7 @@ export async function followCashtags(tags: string[]): Promise<FollowCashTags> {
   const newCashtags = new Set([
     ...trackedCashtags,
     ...tags.filter(
-      (tag) => !process.env.IGNORE_CASHTAGS?.split(",").includes(tag)
+      (tag) => !process.env.IGNORE_CASHTAGS?.includes(tag)
     ),
   ]);
 

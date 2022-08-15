@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import * as fs from "fs";
 import * as readline from "readline";
 import { startOfHour } from "date-fns";
@@ -60,9 +62,9 @@ rl.on("close", function () {
       return;
     }
 
-    const counts = Object.keys(timeline.counts).map((bucketStartTime) => {
-      return timeline.counts[bucketStartTime][token] || 0;
-    });
+    const counts = Object.keys(timeline.counts).map((bucketStartTime) =>
+      timeline.counts[bucketStartTime][token] || 0
+    );
 
     const filledHours = Object.entries(timeline.counts).filter(([time]) => {
       const count = timeline.counts[time][token];

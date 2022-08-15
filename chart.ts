@@ -58,7 +58,7 @@ rl.on("close", function () {
   const { startTime, endTime, tokens } = timeline;
 
   tokens.forEach((token) => {
-    if (process.env.IGNORE_CASHTAGS?.includes(token)) {
+    if (process.env.IGNORE_CASHTAGS?.split(",").includes(token)) {
       return;
     }
 

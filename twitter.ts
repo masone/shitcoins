@@ -46,6 +46,10 @@ export function loadFromLog() {
       console.error(stderr);
     }
 
+    if(!stdout){
+      return
+    }
+
     const json = JSON.parse(stdout);
     if (json.msg !== "counts") {
       logger.info("load failed");

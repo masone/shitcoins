@@ -16,5 +16,5 @@ process.title = "shitcoinsnode";
 
 await clear();
 await followUsers();
-await watchCashtags();
+// await watchCashtags();
 monitor();

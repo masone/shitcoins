@@ -4,6 +4,7 @@
     "module": "es2022",
     "moduleResolution": "node",
     "strict": true,
+    "allowSyntheticDefaultImports": true
   },
   "ts-node": {
     "esm": true

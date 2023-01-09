@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { clear, followUsers, watchCashtags, monitor } from "./twitter.js";
+import { start } from "./twitter2.js";
 import { notify } from "./email.js";
 
 process.on("unhandledRejection", (reason, promise) => {
@@ -14,7 +14,4 @@ process.on("exit", (code) => {
 
 process.title = "shitcoinsnode";
 
-await clear();
-await followUsers();
-// await watchCashtags();
-monitor();
+start();

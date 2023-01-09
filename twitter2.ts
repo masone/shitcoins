@@ -1,7 +1,7 @@
 import { Client } from "twitter-api-sdk";
 import pino from "pino";
 
-import { narratives } from "./narratives";
+import { narratives } from "./narratives.js";
 import { sendEvent } from "./event.js";
 import { trackMetric } from "./metric.js";
 

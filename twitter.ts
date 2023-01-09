@@ -46,8 +46,8 @@ export function loadFromLog() {
       console.error(stderr);
     }
 
-    if(!stdout){
-      return
+    if (!stdout) {
+      return;
     }
 
     const json = JSON.parse(stdout);
@@ -99,7 +99,9 @@ export async function followUsers(): Promise<void> {
 
 export async function watchCashtags(): Promise<void> {
   const tags = process.env.WATCH_CASHTAGS?.split(",") || [];
-  const query = tags.map((tag) => `(${tag} chart good) OR (${tag} accumulation)`).join(" OR ");
+  const query = tags
+    .map((tag) => `(${tag} chart good) OR (${tag} accumulation)`)
+    .join(" OR ");
 
   await client.tweets.addOrDeleteRules({
     add: [
@@ -204,14 +206,15 @@ export async function monitor() {
     }
 
     if (matchingRules.includes("chart")) {
-      if(!tweet.data?.in_reply_to_user_id) {
+      if (!tweet.data?.in_reply_to_user_id) {
         console.dir(tweet, { depth: null });
         const url = `https://twitter.com/xxx/status/${tweet.data?.id}`;
         notify({ text: tweet.data?.text, url });
       }
     }
 
-    if(cashtags.length < 5) { // ignore tweets with too many cashtags
+    if (cashtags.length < 5) {
+      // ignore tweets with too many cashtags
       cashtags.forEach((tag) => {
         if (trackedCashtags.has(tag)) {
           counts[tag] = ++counts[tag];

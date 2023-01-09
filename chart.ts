@@ -62,8 +62,8 @@ rl.on("close", function () {
       return;
     }
 
-    const counts = Object.keys(timeline.counts).map((bucketStartTime) =>
-      timeline.counts[bucketStartTime][token] || 0
+    const counts = Object.keys(timeline.counts).map(
+      (bucketStartTime) => timeline.counts[bucketStartTime][token] || 0
     );
 
     const filledHours = Object.entries(timeline.counts).filter(([time]) => {

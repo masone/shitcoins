@@ -1,4 +1,5 @@
 import { client, v1 } from "@datadog/datadog-api-client";
+
 const configuration = client.createConfiguration({
   authMethods: {
     apiKeyAuth: process.env.DATADOG_API_KEY,
@@ -6,12 +7,12 @@ const configuration = client.createConfiguration({
 });
 const apiInstance = new v1.EventsApi(configuration);
 
-export async function sendEvent(title: string, tags: string[] = []) {
+export async function sendEvent(title: string) {
   const params: v1.EventsApiCreateEventRequest = {
     body: {
       title,
       text: title,
-      tags,
+      tags: [`env:${process.env.NODE_ENV}`],
     },
   };
 

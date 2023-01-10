@@ -34,18 +34,23 @@ async function clear(): Promise<void> {
 }
 
 async function setup(): Promise<void> {
+  if (Object.keys(narratives).length > 5) {
+    throw new Error("Too many narratives");
+  }
+
   const rules = Object.keys(narratives).map((key) => {
     return {
       value: narratives[key].map((words) => `"${words}"`).join(" OR "),
       tag: `narrative:${key}`,
     };
   });
+
   await client.tweets.addOrDeleteRules({
     add: rules,
   });
+  logger.debug({ rules }, "narratives");
 
   sendEvent("setupRules");
-  logger.debug({ rules }, "narratives");
 }
 
 async function monitor() {
@@ -58,7 +63,6 @@ async function monitor() {
       "in_reply_to_user_id",
     ],
     "user.fields": ["id", "username"],
-    // expansions: ["author_id"],
   });
 
   for await (const tweet of stream) {
@@ -83,7 +87,7 @@ async function monitor() {
     }
 
     if (tweet.data?.in_reply_to_user_id) {
-      track(narratives, 0.05);
+      track(narratives, 0.02);
       continue;
     }
 
